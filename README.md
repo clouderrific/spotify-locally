@@ -12,7 +12,7 @@ npm install spotify-locally
 ### Example
 
 ```javascript
-const SpotifyLocally = require('./spotifyLocally');
+const SpotifyLocally = require('spotify-locally');
 
 let spotify = new SpotifyLocally();
 
