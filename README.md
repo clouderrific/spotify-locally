@@ -4,8 +4,6 @@ Spotify-Locally
 Node.js interface for the local Spotify API, based on
 this article: http://cgbystrom.com/articles/deconstructing-spotifys-builtin-http-server/
 
-The API interacts with the SpotifyWebHelper process via HTTP. For windows, the module checks whether SpotifyWebHelper.exe is running, and try to run it if not.
-
 ### Installing
 ```
 npm install spotify-locally
