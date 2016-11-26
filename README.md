@@ -8,7 +8,7 @@ The API interacts with the SpotifyWebHelper process via HTTP. For windows, the m
 
 ### Installing
 ```
-npm install spotify-helper
+npm install spotify-locally
 ```
 
 ### Example
