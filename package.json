@@ -1,6 +1,6 @@
 {
   "name": "spotify-locally",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "Control a local Spotify client via Spotify-Locally",
   "main": "index.js",
   "repository": {

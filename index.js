@@ -2,7 +2,6 @@ const axios = require('axios');
 const q = require('q');
 const _ = require('underscore');
 
-const PORT = 4370;
 const DEFAULT_RETURN_ON = ['login', 'logout', 'play', 'pause', 'error', 'ap'];
 const ORIGIN_HEADER = {Connection: 'keep-alive', Origin: 'https://open.spotify.com'};
 
@@ -10,7 +9,9 @@ class SpotifyLocally {
     /**
      * Main Constructor
      */
-    constructor() {
+    constructor(headless=false, port=4370) {
+        this.port = port;
+        this.isOpen = headless;
         this.authenticated = false;
     }
 
@@ -120,7 +121,7 @@ class SpotifyLocally {
      */
     getUrl(resource) {
         const hostname = this._generateLocalHostname();
-        return `https://${hostname}:${PORT}${resource}`;
+        return `https://${hostname}:${this.port}${resource}`;
     }
 
     /**
@@ -213,11 +214,52 @@ class SpotifyLocally {
                 }
             }).catch((err)=>{
                 console.log('Unable to open client', err);
-                deferredOpen.reject();
+                if(!this.retySuccessful) {
+                    return this.portScan().then(()=>{
+                        this.retySuccessful = true;
+                        // retry
+                        return this.openSpotifyClient().then(()=>{
+                            deferredOpen.resolve();
+                        }).catch(()=>{
+                            deferredOpen.reject();
+                        });
+                    }).catch(()=>{
+                        deferredOpen.reject();
+                    });
+                } else {
+                    deferredOpen.reject();
+                }
+
             });
         }
         return deferredOpen.promise;
 
+    }
+
+    /**
+     * Method looks for additional know ports used by Spotify
+     * @param currentPort - starting port to check
+     * @returns {Promise}
+     */
+    portScan(currentPort=4300) {
+        const deferredPortScan = q.defer();
+        const startPort = 4300;
+        const endPort = 4500;
+
+        console.log('Attempting additional known ports', currentPort);
+        this.port = currentPort;
+        return this.getVersion().then(()=>{
+            this.isFound = true;
+            deferredPortScan.resolve();
+        }).catch((error)=>{
+            if(currentPort > endPort) {
+                deferredPortScan.reject(new Error('Unable to find web client.'))
+            } else {
+                return this.portScan(currentPort+1);
+            }
+        });
+
+        return deferredPortScan.promise;
     }
 }
 
