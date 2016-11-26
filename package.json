@@ -1,0 +1,31 @@
+{
+  "name": "spotify-locally",
+  "version": "0.1.0",
+  "description": "Control a local Spotify client via Spotify-Locally",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clouderrific/spotify-locally.git"
+  },
+  "keywords": [
+    "spotify",
+    "web",
+    "api",
+    "spotify-locally"
+  ],
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "author": "Pablo Sarabia",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/clouderrific/spotify-locallyissues"
+  },
+  "homepage": "https://github.com/clouderrific/spotify-locally#readme",
+  "dependencies": {
+    "axios": "^0.15.2",
+    "node-spotify-webhelper": "0.0.5",
+    "q": "^1.4.1",
+    "underscore": "^1.8.3"
+  }
+}
