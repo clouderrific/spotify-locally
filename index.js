@@ -37,14 +37,30 @@ class SpotifyLocally {
             if (this.authenticated) {
                 deferredLogin.resolve();
             } else {
-                this.oauthToken = this._getOauthToken().then((oauthToken) => {
-                    this._getCsrfToken().then((csrfToken)=>{
+                return this._getOauthToken().then((oauthToken) => {
+                    return this._getCsrfToken().then((csrfToken)=>{
                         this.authenticated = true;
                         this.oauthToken = oauthToken;
                         this.csrfToken = csrfToken;
                         deferredLogin.resolve();
                     }).catch(() => {
-                        deferredLogin.reject();
+                        console.log('here');
+                        // Check additional ports
+                        if (!this.retySuccessful) {
+                            return this.portScan().then(()=>{
+                                this.retySuccessful = true;
+                                // retry
+                                return this._auth().then(()=>{
+                                    deferredLogin.resolve();
+                                }).catch(()=>{
+                                    deferredLogin.reject();
+                                });
+                            }).catch(()=>{
+                                deferredLogin.reject();
+                            });
+                        } else {
+                            deferredLogin.reject();
+                        }
                     });
                 }).catch(() => {
                     deferredLogin.reject();
@@ -75,15 +91,19 @@ class SpotifyLocally {
      * @private
      */
     _getCsrfToken() {
-        const url = this.getUrl('/simplecsrf/token.json')
-        // Requires Origin header to be set to generate the CSRF token.
-        return this.getJson(url, {}, ORIGIN_HEADER).then((response) => {
-            if (response) {
-                return response.token;
-            }
-        }).catch((err)=>{
-            console.log('Unable to retrieve CSRF', err);
+        return q.promise((resolve, reject)=>{
+            const url = this.getUrl('/simplecsrf/token.json')
+            // Requires Origin header to be set to generate the CSRF token.
+            return this.getJson(url, {}, ORIGIN_HEADER).then((response) => {
+                if (response) {
+                    resolve(response.token);
+                }
+            }).catch((err)=>{
+                console.log('Unable to retrieve CSRF', err);
+                reject(err);
+            });
         });
+
     }
 
     /**
@@ -214,22 +234,7 @@ class SpotifyLocally {
                 }
             }).catch((err)=>{
                 console.log('Unable to open client', err);
-                if(!this.retySuccessful) {
-                    return this.portScan().then(()=>{
-                        this.retySuccessful = true;
-                        // retry
-                        return this.openSpotifyClient().then(()=>{
-                            deferredOpen.resolve();
-                        }).catch(()=>{
-                            deferredOpen.reject();
-                        });
-                    }).catch(()=>{
-                        deferredOpen.reject();
-                    });
-                } else {
-                    deferredOpen.reject();
-                }
-
+                deferredOpen.reject();
             });
         }
         return deferredOpen.promise;
@@ -241,9 +246,9 @@ class SpotifyLocally {
      * @param currentPort - starting port to check
      * @returns {Promise}
      */
-    portScan(currentPort=4300) {
+    portScan(currentPort=4350) {
         const deferredPortScan = q.defer();
-        const startPort = 4300;
+        const startPort = 4350;
         const endPort = 4500;
 
         console.log('Attempting additional known ports', currentPort);
